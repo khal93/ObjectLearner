@@ -3,6 +3,7 @@ __author__ = 'Khaleeq'
 import pymysql
 from Feature import Feature
 from Concept import Concept
+import Questioner
 
 class DatabaseManager():
     def __init__(self):
@@ -15,7 +16,7 @@ class DatabaseManager():
 
     # Fetch and store all features from db
         cursor.execute(""" SELECT *
-                        FROM features LIMIT 100
+                        FROM features
                     """)
         features = cursor.fetchall()
 
@@ -60,7 +61,7 @@ class DatabaseManager():
                         + " AND cf.conceptId = c.conceptId")
             conFeats = list(cursor.fetchall())
 
-            new_conc = Concept(concept[0], concept[1], conFeats)
+            new_conc = Concept(concept[0], concept[1], concept[2], concept[3], concept[4], conFeats)
             self.all_concepts.append(new_conc)
 
             # print table?
