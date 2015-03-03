@@ -16,7 +16,7 @@ class DatabaseManager():
 
     # Fetch and store all features from db
         cursor.execute(""" SELECT *
-                        FROM features
+                        FROM features  WHERE wbClass != 'taxonomic' LIMIT 100
                     """)
         features = cursor.fetchall()
 
@@ -48,8 +48,10 @@ class DatabaseManager():
 
             featCons = list(cursor.fetchall())
 
-            new_feat = Feature(feature[0], feature[1], feature[2], feature[3], featCons)
+            new_feat = dict(name=feature[0], brainregion=feature[1], wbclass=feature[2], wbtype=feature[3], isDisting=feature[5], distinctiveness=feature[6], concepts=featCons)
             self.all_features.append(new_feat)
+            # print type(self.all_concepts)
+
 
         # for concept in concepts:
 
@@ -61,7 +63,7 @@ class DatabaseManager():
                         + " AND cf.conceptId = c.conceptId")
             conFeats = list(cursor.fetchall())
 
-            new_conc = Concept(concept[0], concept[1], concept[2], concept[3], concept[4], conFeats)
+            new_conc = dict(name=concept[0], wnid=concept[1], superclass=concept[2], subclass=concept[3], freq=concept[7],  features=conFeats)
             self.all_concepts.append(new_conc)
 
             # print table?

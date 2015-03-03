@@ -9,17 +9,19 @@ from DatabaseManager import DatabaseManager
 from Questioner import *
 
 D = DatabaseManager()
-featStack = shuffle(D.all_features)
-featureQueue = D.all_features
+# global concepts
+all_concepts = D.all_concepts
+# global features
+all_features = D.all_features
+
 
 artefacts = dict(clothing={}, construction={}, device={}, food={}, furniture={}, implement={})
 naturals = dict(animal={}, mineral={}, plant={})
 tax = dict(artefact=artefacts, natural=naturals)
 
-# featureQueuel.sort(lambda x, y: x[1])
+# featureQueue.sort(lambda x, y: x[1])
 #needs SORTING!!!
 
-conceptList = D.all_concepts
 
 
 # print type(featureQueue)
@@ -39,21 +41,43 @@ def main():
     #     inp = raw_input().lower()
     #  print "Your object is " + inp + "."
 
-
+    concepts = all_concepts
+    features = all_features
+    print concepts
     sup = superQuestion(tax.keys())
     sub = subQuestion(tax[sup].keys())
 
     if sub == "skip":
-        # close to only sup
         print "a"
+        # close to only sup
+        filteredConcepts = []
+        print "bef" + str(len(concepts))
+        for c in concepts:
+            if c['superclass'] == sup:
+                # print "deletion"
+                filteredConcepts.append(c)
+        concepts = filteredConcepts
+
+        print "af" + str(len(concepts))
+
     else:
         # close down to sub
-        print "b"
+        filteredConcepts = []
+        print "bef" + str(len(concepts))
+        for c in concepts:
+            if c['superclass'] == sub:
+                # print "deletion"
+                filteredConcepts.append(c)
+
+
+
 
 
     objects = {}
-    for obj in conceptList:
-        objects.update({obj.name: 0})  # Put all objects  into dic with value 0
+    for obj in concepts:
+        objects.update({obj['name']: 0})  # Put all objects  into dic with value 0
+
+
 
     answer = ""
     guess = ""
@@ -65,7 +89,7 @@ def main():
 
     def getQuestion():
         # print "queue length is " + str(len(featureQueue))
-        return featureQueue.pop()
+        return all_features.pop()
         # print "queue length is now " + str(len(featureQueue))
 
 
@@ -73,8 +97,8 @@ def main():
         # for feat in featureQueue:
         #     q = feat
         q = getQuestion()
-        question = q.name
-        positives = q.concepts
+        question = q['name']
+        positives = q['concepts']
 
         # print question
         # print positives ###### EMPTY??

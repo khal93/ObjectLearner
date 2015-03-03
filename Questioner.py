@@ -49,7 +49,7 @@ def subQuestion(list):
     answer = raw_input().lower()
 
     print answer
-    print list
+    # print list
     if answer in list:
         return answer
     else:
