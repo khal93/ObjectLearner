@@ -1,14 +1,12 @@
 __author__ = 'Khaleeq'
 
 import pymysql
-from Feature import Feature
-from Concept import Concept
 import Questioner
 
 class DatabaseManager():
     def __init__(self):
-        self.all_features = []
-        self.all_concepts = []
+        self.all_features = {}
+        self.all_concepts = {}
         self.name ="XS"
         connection = pymysql.connect('localhost', 'root', '', 'objectdb');
         cursor = connection.cursor()
@@ -16,7 +14,7 @@ class DatabaseManager():
 
     # Fetch and store all features from db
         cursor.execute(""" SELECT *
-                        FROM features  WHERE wbClass != 'taxonomic' LIMIT 100
+                        FROM features  WHERE wbClass != 'taxonomic'
                     """)
         features = cursor.fetchall()
 
@@ -46,10 +44,10 @@ class DatabaseManager():
             + " WHERE f.featureId = \"" + feature[0] + "\""
             + " AND cf.featureId = f.featureId")
 
-            featCons = list(cursor.fetchall())
+            featCons = dict(map(list, cursor.fetchall()))
 
-            new_feat = dict(name=feature[0], brainregion=feature[1], wbclass=feature[2], wbtype=feature[3], isDisting=feature[5], distinctiveness=feature[6], concepts=featCons)
-            self.all_features.append(new_feat)
+            new_feat = {feature[0] : dict(brainregion=feature[1], wbclass=feature[2], wbtype=feature[3], isDisting=feature[5], distinctiveness=feature[6], concepts=featCons)}
+            self.all_features.update(new_feat)
             # print type(self.all_concepts)
 
 
@@ -61,10 +59,12 @@ class DatabaseManager():
                         + " FROM concepts AS c, concept_features AS cf"
                         + " WHERE c.conceptId = \"" + concept[0] + "\""
                         + " AND cf.conceptId = c.conceptId")
-            conFeats = list(cursor.fetchall())
+            conFeats = dict(map(list, cursor.fetchall()))
 
-            new_conc = dict(name=concept[0], wnid=concept[1], superclass=concept[2], subclass=concept[3], freq=concept[7],  features=conFeats)
-            self.all_concepts.append(new_conc)
+
+            new_conc = {concept[0] : dict(wnid=concept[1], superclass=concept[2], subclass=concept[3], freq=concept[7],  features=conFeats) }
+            self.all_concepts.update(new_conc)
+
 
             # print table?
             # print len(table)
@@ -97,6 +97,7 @@ class DatabaseManager():
         #                 """, concept)
         #     data = cursor.fetchall()
         #     return data
+
 
 ### test
 print("Fetching from Database...")

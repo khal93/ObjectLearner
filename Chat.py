@@ -7,6 +7,7 @@ from random import shuffle
 from collections import deque
 from DatabaseManager import DatabaseManager
 from Questioner import *
+from collections import OrderedDict
 
 D = DatabaseManager()
 # global concepts
@@ -19,15 +20,6 @@ artefacts = dict(clothing={}, construction={}, device={}, food={}, furniture={},
 naturals = dict(animal={}, mineral={}, plant={})
 tax = dict(artefact=artefacts, natural=naturals)
 
-# featureQueue.sort(lambda x, y: x[1])
-#needs SORTING!!!
-
-
-
-# print type(featureQueue)
-# length = len(featureQueue)
-# print featureQueue[0].name
-# print featureQueue[length-1].name
 
 class Chat:
     def __init__(self):
@@ -35,48 +27,63 @@ class Chat:
 
 
 def main():
-    # inp = ""
-    # while not (inp == "yes" or inp == "no"):
-    #     print("Question")
-    #     inp = raw_input().lower()
-    #  print "Your object is " + inp + "."
 
     concepts = all_concepts
     features = all_features
-    print concepts
     sup = superQuestion(tax.keys())
     sub = subQuestion(tax[sup].keys())
 
     if sub == "skip":
-        print "a"
         # close to only sup
-        filteredConcepts = []
-        print "bef" + str(len(concepts))
-        for c in concepts:
-            if c['superclass'] == sup:
+        filteredConcepts = concepts.copy()
+        for k in concepts.keys():
+            if concepts[k]['superclass'] != sup:
+                del filteredConcepts[k]
                 # print "deletion"
-                filteredConcepts.append(c)
+                # filteredConcepts.append(c)
         concepts = filteredConcepts
 
-        print "af" + str(len(concepts))
 
     else:
         # close down to sub
-        filteredConcepts = []
-        print "bef" + str(len(concepts))
-        for c in concepts:
-            if c['superclass'] == sub:
+        filteredConcepts = concepts.copy()
+        for k in concepts.keys():
+            if concepts[k]['subclass'] != sub:
+                del filteredConcepts[k]
                 # print "deletion"
-                filteredConcepts.append(c)
+                # filteredConcepts.append(c)
+        concepts = filteredConcepts
+
+    filteredFeatures = features.copy()
+
+
+# CHANGE SO NO DUPES IN THIS LIST
+    cfeats = []
+    for c in concepts.keys():
+        cfeats += concepts[c]['features'].keys()
+    for f in features.keys():
+            if not (f in cfeats):
+                del filteredFeatures[f]
+            # filteredFeatures.append(f)
+    features = filteredFeatures
 
 
 
+    questions = {}
+    # maxq = 0
+    for key in features.keys():
+        # print "x"
+        qlen = len(features[key]['concepts'])
+        questions.update({key: qlen})  # Put all questions  into dic with number of concepts
+        # questions = OrderedDict(sorted(questions.items(), key=lambda t: t[1]))
+    # print questions
 
 
-    objects = {}
+    objects = OrderedDict()
     for obj in concepts:
-        objects.update({obj['name']: 0})  # Put all objects  into dic with value 0
-
+        objects.update({obj: 0})  # Put all objects  into dic with value 0
+    # shuffle(objects)
+    sorted(objects, key=objects.get, reverse=True)
 
 
     answer = ""
@@ -89,23 +96,25 @@ def main():
 
     def getQuestion():
         # print "queue length is " + str(len(featureQueue))
-        return all_features.pop()
+        # print questions
+        # thisQ = questions[0]
+        # questions.remove[0]
+        # questions = OrderedDict(question)
+        sorted(questions.iteritems(), key=lambda x: x[1])
+        ret = questions.popitem()
+        return ret[0]
+
+        # print questions
+        # return thisQ
         # print "queue length is now " + str(len(featureQueue))
 
 
     while (not guessed): #and (len(featStack) > 0):
-        # for feat in featureQueue:
-        #     q = feat
-        q = getQuestion()
-        question = q['name']
-        positives = q['concepts']
-
-        # print question
-        # print positives ###### EMPTY??
-
+        question = getQuestion()
+        affected = features[question]['concepts']
+        print affected
         print question + "?" ##needs converting with regex
-        # print type(positives)
-        # print positives
+
 
         answer = raw_input().lower()
 
@@ -120,24 +129,28 @@ def main():
             #     validInput = True;
 
         if answer == "yes":
-            print "Interesting..."
-            for o in positives:
-                oname = list(o)[0]
-                objects[oname] = objects.get(oname) + 1
-                if objects.get(oname) > 2:
-                    guess = oname
-                    guessed = True
-            # print objects
+            # print "Interesting..."
+            for o in affected:
+                if o in objects.keys():
+                  objects[o] = objects.get(o) + 1
+                  print "\t :" + o + " +1"
 
         elif answer == "no":
-            print "Oh, must be something else..."
-            for o in positives:
-                oname = list(o)[0]
-                objects[oname] = objects.get(oname) - 1
-                if objects.get(oname) <= -1:
-                    del objects[oname]
-                print len(objects)
+            # print "Oh, must be something else..."
+            for o in affected:
+                if o in objects.keys():
+                    objects[o] = objects.get(o) - 1
+                    print "\t :" + o + " -1"
+                    if objects.get(o) <= -1:
+                        del objects[o]
+
+        print str(len(objects)) + " objects remain"
+
+        # win condition
+        if len(objects) == 1:
+            guess = objects.pop()
+            guessed = True
 
     print "I guess that the object is: " + guess
-    print objects
+    # print objects
 if __name__ == "__main__": main()
