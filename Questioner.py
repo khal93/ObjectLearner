@@ -54,3 +54,11 @@ def subQuestion(list):
         return answer
     else:
         return "skip"
+
+# questions = dict(clothing=1, construction=12, device=6, food=10, furniture=1, implement=5)
+#
+#
+# chosen = max(questions, key=questions.get)
+# del questions[chosen]
+# # ret = questions.popitem()
+# print chosen

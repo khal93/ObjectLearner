@@ -35,26 +35,26 @@ def main():
 
     if sub == "skip":
         # close to only sup
-        filteredConcepts = concepts.copy()
+        # filteredConcepts = concepts.copy()
         for k in concepts.keys():
             if concepts[k]['superclass'] != sup:
-                del filteredConcepts[k]
+                del concepts[k]
                 # print "deletion"
                 # filteredConcepts.append(c)
-        concepts = filteredConcepts
+        # concepts = filteredConcepts
 
 
     else:
         # close down to sub
-        filteredConcepts = concepts.copy()
+        # filteredConcepts = concepts.copy()
         for k in concepts.keys():
             if concepts[k]['subclass'] != sub:
-                del filteredConcepts[k]
+                del concepts[k]
                 # print "deletion"
                 # filteredConcepts.append(c)
-        concepts = filteredConcepts
+        # concepts = filteredConcepts
 
-    filteredFeatures = features.copy()
+    # filteredFeatures = features.copy()
 
 
 # CHANGE SO NO DUPES IN THIS LIST
@@ -63,9 +63,9 @@ def main():
         cfeats += concepts[c]['features'].keys()
     for f in features.keys():
             if not (f in cfeats):
-                del filteredFeatures[f]
+                del features[f]
             # filteredFeatures.append(f)
-    features = filteredFeatures
+    # features = filteredFeatures
 
 
 
@@ -89,6 +89,7 @@ def main():
     answer = ""
     guess = ""
     guessed = False
+    numQuestions = 0
 
     # for s in featStack:
     #     print s.name
@@ -100,9 +101,12 @@ def main():
         # thisQ = questions[0]
         # questions.remove[0]
         # questions = OrderedDict(question)
-        sorted(questions.iteritems(), key=lambda x: x[1])
-        ret = questions.popitem()
-        return ret[0]
+        # sorted(questions.iteritems(), key=lambda x: x[1])
+
+        chosen = max(questions, key=questions.get) #TODO: check if max length?
+        del questions[chosen]
+        # ret = questions.popitem()
+        return chosen
 
         # print questions
         # return thisQ
@@ -110,8 +114,16 @@ def main():
 
 
     while (not guessed): #and (len(featStack) > 0):
+        numQuestions+=1
         question = getQuestion()
+
+        #filter affected
         affected = features[question]['concepts']
+        intersection = affected.viewkeys() & objects.viewkeys()
+        for o in affected.keys():
+            if not (o in intersection):
+                del affected[o]
+
         print affected
         print question + "?" ##needs converting with regex
 
@@ -139,18 +151,43 @@ def main():
             # print "Oh, must be something else..."
             for o in affected:
                 if o in objects.keys():
-                    objects[o] = objects.get(o) - 1
-                    print "\t :" + o + " -1"
-                    if objects.get(o) <= -1:
-                        del objects[o]
+                    del objects[o]
+                    # objects[o] = objects.get(o) - 1
+                    # print "\t :" + o + " -1"
+                    # if objects.get(o) <= -1:
+                    #     del objects[o]
 
-        print str(len(objects)) + " objects remain"
+
+        print str(len(objects)) + " objects remain" + "\t" + "current guess: " + max(objects, key=objects.get)
 
         # win condition
-        if len(objects) == 1:
-            guess = objects.pop()
+        if len(objects) == 1 or numQuestions > 20 :
+            guess = objects.popitem()
             guessed = True
 
-    print "I guess that the object is: " + guess
-    # print objects
+        elif len(objects) == 0:
+            lost = True
+
+    if guessed == True:
+        print "I guess that the object is: " + str(guess[0]) + " \t Questions: " + str(numQuestions)
+    elif lost == True:
+        print "You win!"
+         #implement learn new object
+
 if __name__ == "__main__": main()
+
+
+### things to add
+### # simple version: preset questions
+### # better version: median based
+### # check that guessing object list disjointed with current guesses-answer set (not full object set or just super/subsets) (IMPORTANT as max/median values shouldn't come from to big a group, and questions might be wasted)
+### # shortcut for disting feat (remember will be late in game as they only apply to 1. Infact, all disting are 1 or 2, so moot?
+### # ask specific question to check top answers (more intelligent to check current guess, which can then be removed)
+### # ranking more applicable object features in some way
+### # LEARNING
+### ## Show changes (new yesses, and possibly different from expected answer (if NO=straight remove is changed)
+### # if set to 20, continue option?
+### # other win conditions?
+### # should no alway remove?
+### # back and skip?
+### # what if features run out?
