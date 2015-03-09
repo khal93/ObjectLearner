@@ -161,7 +161,7 @@ def main():
         print str(len(objects)) + " objects remain" + "\t" + "current guess: " + max(objects, key=objects.get)
 
         # win condition
-        if len(objects) == 1 or numQuestions > 20 :
+        if len(objects) == 1 or numQuestions > 30 :
             guess = objects.popitem()
             guessed = True
 
@@ -170,6 +170,8 @@ def main():
 
     if guessed == True:
         print "I guess that the object is: " + str(guess[0]) + " \t Questions: " + str(numQuestions)
+        print "Otherwise it might be one of these..."
+        print str(objects)
     elif lost == True:
         print "You win!"
          #implement learn new object
@@ -191,3 +193,5 @@ if __name__ == "__main__": main()
 ### # should no alway remove?
 ### # back and skip?
 ### # what if features run out?
+### # check for questions with no effect
+### # answer error checking
