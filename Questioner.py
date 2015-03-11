@@ -55,6 +55,11 @@ def subQuestion(list):
     else:
         return "skip"
 
+def filter_dict_by(dict, field, value):
+    for k in dict.keys():
+        if dict[k][field] != value:
+            del dict[k]
+
 # questions = dict(clothing=1, construction=12, device=6, food=10, furniture=1, implement=5)
 #
 #

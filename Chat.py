@@ -8,6 +8,8 @@ from collections import deque
 from DatabaseManager import DatabaseManager
 from Questioner import *
 from collections import OrderedDict
+from collections import Counter
+from numpy import median
 
 D = DatabaseManager()
 # global concepts
@@ -21,63 +23,31 @@ naturals = dict(animal={}, mineral={}, plant={})
 tax = dict(artefact=artefacts, natural=naturals)
 
 
+def middle(nums):
+    nums.sort()
+    length = len(nums)
+    half = length/2
+    # if length % 2:                  #if even, return the half
+    return nums [half]
+    # else:                            #if odd
+    #     return (nums[half] + nums[half-1] )/2
+
 class Chat:
     def __init__(self):
         self
 
 
+def features_in_objectset(dict):
+    cfeats = [] #all concept features
+    for c in dict.keys():
+        cfeats += all_concepts[c]['features'].keys()
+    return Counter(cfeats);
+
+
 def main():
 
-    concepts = all_concepts
-    features = all_features
-    sup = superQuestion(tax.keys())
-    sub = subQuestion(tax[sup].keys())
-
-    if sub == "skip":
-        # close to only sup
-        # filteredConcepts = concepts.copy()
-        for k in concepts.keys():
-            if concepts[k]['superclass'] != sup:
-                del concepts[k]
-                # print "deletion"
-                # filteredConcepts.append(c)
-        # concepts = filteredConcepts
-
-
-    else:
-        # close down to sub
-        # filteredConcepts = concepts.copy()
-        for k in concepts.keys():
-            if concepts[k]['subclass'] != sub:
-                del concepts[k]
-                # print "deletion"
-                # filteredConcepts.append(c)
-        # concepts = filteredConcepts
-
-    # filteredFeatures = features.copy()
-
-
-# CHANGE SO NO DUPES IN THIS LIST
-    cfeats = []
-    for c in concepts.keys():
-        cfeats += concepts[c]['features'].keys()
-    for f in features.keys():
-            if not (f in cfeats):
-                del features[f]
-            # filteredFeatures.append(f)
-    # features = filteredFeatures
-
-
-
-    questions = {}
-    # maxq = 0
-    for key in features.keys():
-        # print "x"
-        qlen = len(features[key]['concepts'])
-        questions.update({key: qlen})  # Put all questions  into dic with number of concepts
-        # questions = OrderedDict(sorted(questions.items(), key=lambda t: t[1]))
-    # print questions
-
+    concepts = all_concepts # this gets drilled down as it needs to be counted
+    features = all_features # this an alais to the full list, as we drill down in the questions instead
 
     objects = OrderedDict()
     for obj in concepts:
@@ -86,25 +56,73 @@ def main():
     sorted(objects, key=objects.get, reverse=True)
 
 
+    sup = superQuestion(tax.keys())
+    sub = subQuestion(tax[sup].keys())
+
+    if sub == "skip":
+        for k in concepts.keys():
+            if concepts[k]['superclass'] != sup:
+                del objects[k]
+
+    else:
+        for k in concepts.keys():
+            if concepts[k]['subclass'] != sub:
+                del objects[k]
+
+# CHANGE SO NO DUPES IN THIS LIST
+
+    # for f in features.keys():
+    #         if not (f in cfeats):
+    #             del features[f]
+    #         # filteredFeatures.append(f)
+    # # features = filteredFeatures
+
+    # for key in features.keys():
+    #     # print "x"
+    #     qlen = len(features[key]['concepts'])
+    #     questions.update({key: qlen})
+
+          # Put all questions  into dic with number of concepts
+        # questions = OrderedDict(sorted(questions.items(), key=lambda t: t[1]))
+    # print questions
+
+
     answer = ""
     guess = ""
     guessed = False
     numQuestions = 0
+    questionHistory = []
+    asked = [] #sorta hacky, could access question history directly but this should avoid a loop
 
     # for s in featStack:
     #     print s.name
 
 
-    def getQuestion():
+    def getQuestion(objects, asked):
+
+        questions = features_in_objectset(objects)
+        for q in questions.keys():
+            if q in asked:
+                del questions[q]
+            if not (q in all_features):     ### TODO: Currently HACKY fix to skip unlisted features
+                del questions[q]
+
         # print "queue length is " + str(len(featureQueue))
         # print questions
         # thisQ = questions[0]
         # questions.remove[0]
         # questions = OrderedDict(question)
         # sorted(questions.iteritems(), key=lambda x: x[1])
+        # print questions
 
-        chosen = max(questions, key=questions.get) #TODO: check if max length?
-        del questions[chosen]
+        counts = sorted(questions.values())
+        counts = list(set(counts))         ##try without dupes?
+        print counts
+        med = int(middle(counts))
+        print med
+        chosen = [k for k, v in questions.iteritems() if v == med][0] ## TODO some check for closest med if missing key error (though this makes no sense)
+
+        # chosen = max(questions, key=questions.get) #TODO: check if max length?
         # ret = questions.popitem()
         return chosen
 
@@ -115,17 +133,18 @@ def main():
 
     while (not guessed): #and (len(featStack) > 0):
         numQuestions+=1
-        question = getQuestion()
+        question = getQuestion(objects, asked)
+        print question + "?" ##needs converting with regex
 
         #filter affected
-        affected = features[question]['concepts']
+        # print all_features.keys()
+        affected = all_features[question]['concepts']
         intersection = affected.viewkeys() & objects.viewkeys()
         for o in affected.keys():
             if not (o in intersection):
                 del affected[o]
 
-        print affected
-        print question + "?" ##needs converting with regex
+        print affected.keys()
 
 
         answer = raw_input().lower()
@@ -146,22 +165,27 @@ def main():
                 if o in objects.keys():
                   objects[o] = objects.get(o) + 1
                   print "\t :" + o + " +1"
+                else:
+                    objects[o] = objects.get(o) + -1
+                    print "\t :" + o + " -1"
+
 
         elif answer == "no":
             # print "Oh, must be something else..."
             for o in affected:
                 if o in objects.keys():
+                    print "\t :" + o + "X"
                     del objects[o]
                     # objects[o] = objects.get(o) - 1
                     # print "\t :" + o + " -1"
                     # if objects.get(o) <= -1:
                     #     del objects[o]
-
-
+        questionHistory.append({ question : answer } )
+        asked.append(question)
         print str(len(objects)) + " objects remain" + "\t" + "current guess: " + max(objects, key=objects.get)
 
         # win condition
-        if len(objects) == 1 or numQuestions > 30 :
+        if len(objects) == 1: # or len(questions) == 0:
             guess = objects.popitem()
             guessed = True
 
@@ -195,3 +219,4 @@ if __name__ == "__main__": main()
 ### # what if features run out?
 ### # check for questions with no effect
 ### # answer error checking
+### deal with when there is a limited set of starter features, we only want present features to taken from concepts array
