@@ -55,7 +55,7 @@ def subQuestion(list):
     else:
         return "skip"
 
-def filter_dict_by(dict, field, value):
+def filterDictBy(dict, field, value):
     for k in dict.keys():
         if dict[k][field] != value:
             del dict[k]

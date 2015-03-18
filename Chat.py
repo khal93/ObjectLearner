@@ -1,7 +1,7 @@
 __author__ = 'Khaleeq'
 
 import re
-import nltk
+# import nltk
 import pprint
 from random import shuffle
 from collections import deque
@@ -9,11 +9,11 @@ from DatabaseManager import DatabaseManager
 from Questioner import *
 from collections import OrderedDict
 from collections import Counter
-from numpy import median
 
 D = DatabaseManager()
 # global concepts
 all_concepts = D.all_concepts
+
 # global features
 all_features = D.all_features
 
@@ -37,28 +37,16 @@ class Chat:
         self
 
 
-def features_in_objectset(dict):
+def featuresInObjectset(dict):
     cfeats = [] #all concept features
     for c in dict.keys():
         cfeats += all_concepts[c]['features'].keys()
     return Counter(cfeats);
 
 
-def main():
-
-    concepts = all_concepts # this gets drilled down as it needs to be counted
-    features = all_features # this an alais to the full list, as we drill down in the questions instead
-
-    objects = OrderedDict()
-    for obj in concepts:
-        objects.update({obj: 0})  # Put all objects  into dic with value 0
-    # shuffle(objects)
-    sorted(objects, key=objects.get, reverse=True)
-
-
+def askPreQuestions(concepts, objects):
     sup = superQuestion(tax.keys())
     sub = subQuestion(tax[sup].keys())
-
     if sub == "skip":
         for k in concepts.keys():
             if concepts[k]['superclass'] != sup:
@@ -69,25 +57,76 @@ def main():
             if concepts[k]['subclass'] != sub:
                 del objects[k]
 
-# CHANGE SO NO DUPES IN THIS LIST
+            # CHANGE SO NO DUPES IN THIS LIST
 
-    # for f in features.keys():
-    #         if not (f in cfeats):
-    #             del features[f]
-    #         # filteredFeatures.append(f)
-    # # features = filteredFeatures
+            # for f in features.keys():
+            # if not (f in cfeats):
+            #             del features[f]
+            #         # filteredFeatures.append(f)
+            # # features = filteredFeatures
 
-    # for key in features.keys():
-    #     # print "x"
-    #     qlen = len(features[key]['concepts'])
-    #     questions.update({key: qlen})
+            # for key in features.keys():
+            #     # print "x"
+            #     qlen = len(features[key]['concepts'])
+            #     questions.update({key: qlen})
 
-          # Put all questions  into dic with number of concepts
-        # questions = OrderedDict(sorted(questions.items(), key=lambda t: t[1]))
-    # print questions
+            # Put all questions  into dic with number of concepts
+            # questions = OrderedDict(sorted(questions.items(), key=lambda t: t[1]))
 
 
-    answer = ""
+
+def getQuestion(objects, asked):
+
+    # Get questions over remaining objects
+    questions = featuresInObjectset(objects)
+
+    # Remove previously asked and unlisted questions
+    for q in questions.keys():
+        if q in asked:
+            del questions[q]
+        if not (q in all_features):     ### TODO: Currently HACKY fix to skip unlisted features
+            del questions[q]
+
+##DIVIDE AND CONQUER##
+    # Counts of related objects for each feat
+    counts = sorted(questions.values())
+    counts = list(set(counts))         ##conversion removes duplicates
+
+    # Find median/middle count value, and use this to select a question
+    med = int(middle(counts))
+    chosen = [k for k, v in questions.iteritems() if v == med][0]
+    return chosen
+
+    # chosen = max(questions, key=questions.get) #TODO: separate out maxed/standard q version
+    # ret = questions.popitem()
+
+
+def setupObjects():
+    objDict = OrderedDict()
+    for obj in all_concepts:
+        objDict.update({obj: 0})  # Put all objects  into dic with value 0
+    # shuffle(objects)
+    # sorted(objects, key=objects.get, reverse=True)
+    return objDict
+
+def modifyScore(d, key, value):
+    d[key] = d.get(key) + value
+    print "\t :" + key + " +" + str(value)
+
+def removeObject(d, key):
+    del d[key]
+    print "\t :" + key + " X"
+
+
+
+def playGame(concepts, features):
+    objects = setupObjects()
+    askPreQuestions(concepts, objects)
+
+
+
+    #initialise blank response and guess
+    response = ""
     guess = ""
     guessed = False
     numQuestions = 0
@@ -98,33 +137,6 @@ def main():
     #     print s.name
 
 
-    def getQuestion(objects, asked):
-
-        questions = features_in_objectset(objects)
-        for q in questions.keys():
-            if q in asked:
-                del questions[q]
-            if not (q in all_features):     ### TODO: Currently HACKY fix to skip unlisted features
-                del questions[q]
-
-        # print "queue length is " + str(len(featureQueue))
-        # print questions
-        # thisQ = questions[0]
-        # questions.remove[0]
-        # questions = OrderedDict(question)
-        # sorted(questions.iteritems(), key=lambda x: x[1])
-        # print questions
-
-        counts = sorted(questions.values())
-        counts = list(set(counts))         ##try without dupes?
-        print counts
-        med = int(middle(counts))
-        print med
-        chosen = [k for k, v in questions.iteritems() if v == med][0] ## TODO some check for closest med if missing key error (though this makes no sense)
-
-        # chosen = max(questions, key=questions.get) #TODO: check if max length?
-        # ret = questions.popitem()
-        return chosen
 
         # print questions
         # return thisQ
@@ -147,41 +159,74 @@ def main():
         print affected.keys()
 
 
-        answer = raw_input().lower()
+        response = raw_input().lower()
 
-        # while not (answer == "yes" or answer == "no"):
-        #     print question + "?" ##needs converting with regex
-        #     answer = raw_input().lower()
-            # print answer
+        ##answer processing
 
-            # if answer == "yes":
-            #     validInput = True;
-            # elif answer == "no":
-            #     validInput = True;
+        def processAnswer_priorty():
+        ### Changes prioty depending on answers
+        ###TODO: Currently removes at -5, as prioritised version still to be done
+            if response == "yes":
+                for o in objects.keys():
+                    if o in affected:
+                      modifyScore(objects, o, +1)
+                    else:
+                      modifyScore(objects, o, -1)
+                      if objects.get(o) < -5:
+                        removeObject(objects, o)
 
-        if answer == "yes":
-            # print "Interesting..."
-            for o in affected:
-                if o in objects.keys():
-                  objects[o] = objects.get(o) + 1
-                  print "\t :" + o + " +1"
-                else:
-                    objects[o] = objects.get(o) + -1
-                    print "\t :" + o + " -1"
+            elif response == "no":
+                for o in objects.keys():
+                    if o in affected:
+                      modifyScore(objects, o, -1)
+                      if objects.get(o) < -5:
+                        removeObject(objects, o)
+                    else:
+                        modifyScore(objects, o, 1)
 
 
-        elif answer == "no":
-            # print "Oh, must be something else..."
-            for o in affected:
-                if o in objects.keys():
-                    print "\t :" + o + "X"
-                    del objects[o]
-                    # objects[o] = objects.get(o) - 1
-                    # print "\t :" + o + " -1"
-                    # if objects.get(o) <= -1:
-                    #     del objects[o]
-        questionHistory.append({ question : answer } )
+
+        def processAnswer_mirror():
+        ###Yes: +1 or remove  /  No: remove or +1
+            if response == "yes":
+                for o in objects.keys():
+                    if o in affected:
+                      modifyScore(objects, o, 1)
+                    else:
+                        removeObject(objects, o)
+
+            elif response == "no":
+                for o in objects.keys():
+                    if o in affected:
+                        removeObject(objects, o)
+                    else:
+                        modifyScore(objects, o, 1)
+
+        def processAnswer_y1_nX():
+        ### Yes: +1 / No: Remove
+            if response == "yes":
+                for o in affected:
+                    if o in objects.keys():
+                      modifyScore(objects, o, 1)
+                    # else:
+                    #     removeObject(objects, o)
+
+            elif response == "no":
+                for o in affected:
+                    if o in objects.keys():
+                        removeObject(objects, o)
+                    # else:
+                    #     modifyScore(objects, o, 1)
+
+
+        processAnswer_y1_nX()
+        # processAnswer_mirror()
+        # processAnswer_priorty()
+
+
+        questionHistory.append({ question : response } )
         asked.append(question)
+
         print str(len(objects)) + " objects remain" + "\t" + "current guess: " + max(objects, key=objects.get)
 
         # win condition
@@ -194,11 +239,22 @@ def main():
 
     if guessed == True:
         print "I guess that the object is: " + str(guess[0]) + " \t Questions: " + str(numQuestions)
-        print "Otherwise it might be one of these..."
-        print str(objects)
+        # print "Otherwise it might be one of these..."
+        # print str(objects)
     elif lost == True:
         print "You win!"
          #implement learn new object
+
+
+
+
+def main():
+
+    # concepts = all_concepts # this gets drilled down as it needs to be counted
+    # features = all_features # this an alias to the full list, as we drill down in the questions instead
+
+    playGame(all_concepts, all_features)
+
 
 if __name__ == "__main__": main()
 
@@ -208,15 +264,14 @@ if __name__ == "__main__": main()
 ### # better version: median based
 ### # check that guessing object list disjointed with current guesses-answer set (not full object set or just super/subsets) (IMPORTANT as max/median values shouldn't come from to big a group, and questions might be wasted)
 ### # shortcut for disting feat (remember will be late in game as they only apply to 1. Infact, all disting are 1 or 2, so moot?
-### # ask specific question to check top answers (more intelligent to check current guess, which can then be removed)
+### # TODO??? ask specific question to check top answers (more intelligent to check current guess, which can then be removed)
 ### # ranking more applicable object features in some way
-### # LEARNING
-### ## Show changes (new yesses, and possibly different from expected answer (if NO=straight remove is changed)
+### # TODO LEARNING
+### ## TODO Show changes (new yesses, and possibly different from expected answer (if NO=straight remove is changed)
 ### # if set to 20, continue option?
-### # other win conditions?
+### # TODO other win conditions?
 ### # should no alway remove?
-### # back and skip?
+### # TODO back and skip?
 ### # what if features run out?
 ### # check for questions with no effect
 ### # answer error checking
-### deal with when there is a limited set of starter features, we only want present features to taken from concepts array
