@@ -9,6 +9,7 @@ from DatabaseManager import DatabaseManager
 from Questioner import *
 from collections import OrderedDict
 from collections import Counter
+import numpy as np
 
 D = DatabaseManager()
 # global concepts
@@ -116,8 +117,10 @@ def setupObjects():
     return objDict
 
 def topObjects(d):
+
+    avg = np.mean(d.values())
     for o in d.keys():
-        if int(d.get(o)) < 0:
+        if int(d.get(o)) <= avg:
             del d[o]
     return d
 
@@ -142,6 +145,7 @@ def playGame(concepts, features):
     #initialise blank response and guess
     response = ""
     guess = ""
+    clearWinner = False
     guessed = False
     numQuestions = 0
     questionHistory = []
@@ -247,11 +251,18 @@ def playGame(concepts, features):
         # print str(len(objects)) + " objects remain" + "\t" + "current guess: " + max(objects, key=objects.get)
         topGuess = max(objects, key=objects.get)
 
+        #TODO: - check for clear winner, something better than difference 5?
+        remObjs = objects.copy()
+        del remObjs[topGuess]
+        secondGuess = max(remObjs, key=remObjs.get)
+        if objects[topGuess] - objects[secondGuess] >= 5:
+            clearWinner = True
+
         print str(len(bestCandidates)) + " candidates" + "\t" + "current guess: " + topGuess + " (" + str(objects[topGuess]) + ")"
 
 
         # win condition
-        if len(objects) == 1: # or len(questions) == 0:
+        if len(objects) == 1 or clearWinner == True: # or len(questions) == 0:
             guess = objects.popitem()
             guessed = True
 
