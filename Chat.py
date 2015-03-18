@@ -120,7 +120,7 @@ def topObjects(d):
 
     avg = np.mean(d.values())
     for o in d.keys():
-        if int(d.get(o)) <= avg:
+        if int(d.get(o)) < avg:
             del d[o]
     return d
 
@@ -145,8 +145,9 @@ def playGame(concepts, features):
     #initialise blank response and guess
     response = ""
     guess = ""
-    clearWinner = False
+    readyToGuess = False
     guessed = False
+    lost = False
     numQuestions = 0
     questionHistory = []
     asked = [] #sorta hacky, could access question history directly but this should avoid a loop
@@ -161,7 +162,7 @@ def playGame(concepts, features):
         # print "queue length is now " + str(len(featureQueue))
 
 
-    while (not guessed): #and (len(featStack) > 0):
+    while (not readyToGuess): #and (len(featStack) > 0):
         numQuestions+=1
         bestCandidates = topObjects(objects)
         # print str(bestCandidates)
@@ -254,26 +255,33 @@ def playGame(concepts, features):
         #TODO: - check for clear winner, something better than difference 5?
         remObjs = objects.copy()
         del remObjs[topGuess]
-        secondGuess = max(remObjs, key=remObjs.get)
-        if objects[topGuess] - objects[secondGuess] >= 5:
-            clearWinner = True
+
+        if len(bestCandidates) == 1:
+            readyToGuess = True
+
+        if  len(remObjs) == 0:
+            readyToGuess == True
+        else:
+            secondGuess = max(remObjs, key=remObjs.get)
+            if objects[topGuess] - objects[secondGuess] >= 5:
+                readyToGuess = True
 
         print str(len(bestCandidates)) + " candidates" + "\t" + "current guess: " + topGuess + " (" + str(objects[topGuess]) + ")"
 
 
         # win condition
-        if len(objects) == 1 or clearWinner == True: # or len(questions) == 0:
+        if readyToGuess == True: # or len(questions) == 0:
             guess = objects.popitem()
-            guessed = True
+            print "I predict that the object is: " + guess[0]
+            print "\n Questions asked: " + str(numQuestions)
+            # guessed = True
 
-        elif len(objects) == 0:
+        elif len(objects) == 0: #TODO??
             lost = True
 
-    if guessed == True:
-        print "I guess that the object is: " + str(guess[0]) + " \t Questions: " + str(numQuestions)
-        # print "Otherwise it might be one of these..."
-        # print str(objects)
-    elif lost == True:
+    # if guessed == True:
+
+    if lost == True:
         print "You win!"
          #implement learn new object
 
@@ -284,6 +292,13 @@ def main():
 
     # concepts = all_concepts # this gets drilled down as it needs to be counted
     # features = all_features # this an alias to the full list, as we drill down in the questions instead
+    #
+    # print type(all_features)
+    # print str(all_features)
+    # print "\n /n \n"
+    # print type(all_concepts)
+    # print str(all_concepts)
+
 
     playGame(all_concepts, all_features)
 
