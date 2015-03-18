@@ -46,16 +46,21 @@ def featuresInObjectset(dict):
 
 def askPreQuestions(concepts, objects):
     sup = superQuestion(tax.keys())
-    sub = subQuestion(tax[sup].keys())
-    if sub == "skip":
-        for k in concepts.keys():
+    for k in concepts.keys():
             if concepts[k]['superclass'] != sup:
                 del objects[k]
 
-    else:
-        for k in concepts.keys():
-            if concepts[k]['subclass'] != sub:
-                del objects[k]
+
+    # sub = subQuestion(tax[sup].keys())
+    # if sub == "skip":
+    #     for k in concepts.keys():
+    #         if concepts[k]['superclass'] != sup:
+    #             del objects[k]
+    #
+    # else:
+    #     for k in concepts.keys():
+    #         if concepts[k]['subclass'] != sub:
+    #             del objects[k]
 
             # CHANGE SO NO DUPES IN THIS LIST
 
@@ -110,8 +115,10 @@ def setupObjects():
     return objDict
 
 def modifyScore(d, key, value):
-    d[key] = d.get(key) + value
-    print "\t :" + key + " +" + str(value)
+    if key in d.keys():
+        if isinstance( value, ( int, long ) ):
+            d[key] = d.get(key) + value
+        print "\t :" + key + " +" + str(value)
 
 def removeObject(d, key):
     del d[key]
@@ -165,22 +172,23 @@ def playGame(concepts, features):
 
         def processAnswer_priorty():
         ### Changes prioty depending on answers
-        ###TODO: Currently removes at -5, as prioritised version still to be done
+        ###TODO: Currently removes at -2, as prioritised version still to be done
             if response == "yes":
                 for o in objects.keys():
+                    if objects.get(o) <= -2:
+                        removeObject(objects, o)
                     if o in affected:
                       modifyScore(objects, o, +1)
                     else:
-                      modifyScore(objects, o, -1)
-                      if objects.get(o) < -5:
-                        removeObject(objects, o)
+                      modifyScore(objects, o, int(0-1))
+
 
             elif response == "no":
                 for o in objects.keys():
-                    if o in affected:
-                      modifyScore(objects, o, -1)
-                      if objects.get(o) < -5:
+                    if objects.get(o) <= -2:
                         removeObject(objects, o)
+                    if o in affected:
+                      modifyScore(objects, o, int(0-1))
                     else:
                         modifyScore(objects, o, 1)
 
@@ -219,9 +227,9 @@ def playGame(concepts, features):
                     #     modifyScore(objects, o, 1)
 
 
-        processAnswer_y1_nX()
+        # processAnswer_y1_nX()
         # processAnswer_mirror()
-        # processAnswer_priorty()
+        processAnswer_priorty()
 
 
         questionHistory.append({ question : response } )

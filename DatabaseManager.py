@@ -12,9 +12,9 @@ class DatabaseManager():
         cursor = connection.cursor()
 
 
-    # Fetch and store all features from db
+    # Fetch and store all features from db WHERE wbClass != 'taxonomic'
         cursor.execute(""" SELECT *
-                        FROM features  WHERE wbClass != 'taxonomic'
+                        FROM features
                     """)
         features = cursor.fetchall()
 
