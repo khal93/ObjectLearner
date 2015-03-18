@@ -5,7 +5,7 @@ import re
 import pprint
 from random import shuffle
 from collections import deque
-from DatabaseManager import DatabaseManager
+from DatabaseManagerSqlite import DatabaseManager
 from Questioner import *
 from collections import OrderedDict
 from collections import Counter
