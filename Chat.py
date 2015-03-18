@@ -111,8 +111,15 @@ def setupObjects():
     for obj in all_concepts:
         objDict.update({obj: 0})  # Put all objects  into dic with value 0
     # shuffle(objects)
+    # shuffle(objects)
     # sorted(objects, key=objects.get, reverse=True)
     return objDict
+
+def topObjects(d):
+    for o in d.keys():
+        if int(d.get(o)) < 0:
+            del d[o]
+    return d
 
 def modifyScore(d, key, value):
     if key in d.keys():
@@ -152,7 +159,9 @@ def playGame(concepts, features):
 
     while (not guessed): #and (len(featStack) > 0):
         numQuestions+=1
-        question = getQuestion(objects, asked)
+        bestCandidates = topObjects(objects)
+        # print str(bestCandidates)
+        question = getQuestion(bestCandidates, asked)
         print question + "?" ##needs converting with regex
 
         #filter affected
@@ -175,8 +184,8 @@ def playGame(concepts, features):
         ###TODO: Currently removes at -2, as prioritised version still to be done
             if response == "yes":
                 for o in objects.keys():
-                    if objects.get(o) <= -2:
-                        removeObject(objects, o)
+                    # if objects.get(o) <= -2:
+                    #     removeObject(objects, o)
                     if o in affected:
                       modifyScore(objects, o, +1)
                     else:
@@ -185,8 +194,8 @@ def playGame(concepts, features):
 
             elif response == "no":
                 for o in objects.keys():
-                    if objects.get(o) <= -2:
-                        removeObject(objects, o)
+                    # if objects.get(o) <= -2:
+                    #     removeObject(objects, o)
                     if o in affected:
                       modifyScore(objects, o, int(0-1))
                     else:
@@ -235,7 +244,11 @@ def playGame(concepts, features):
         questionHistory.append({ question : response } )
         asked.append(question)
 
-        print str(len(objects)) + " objects remain" + "\t" + "current guess: " + max(objects, key=objects.get)
+        # print str(len(objects)) + " objects remain" + "\t" + "current guess: " + max(objects, key=objects.get)
+        topGuess = max(objects, key=objects.get)
+
+        print str(len(bestCandidates)) + " candidates" + "\t" + "current guess: " + topGuess + " (" + str(objects[topGuess]) + ")"
+
 
         # win condition
         if len(objects) == 1: # or len(questions) == 0:
