@@ -3,7 +3,7 @@ __author__ = 'Khaleeq'
 import re
 # import nltk
 import pprint
-from random import shuffle
+import random
 from collections import deque
 from DatabaseManagerSqlite import DatabaseManager
 from Questioner import *
@@ -100,8 +100,8 @@ def getQuestion(objects, asked):
 
     # Find median/middle count value, and use this to select a question
     med = int(middle(counts))
-    chosen = [k for k, v in questions.iteritems() if v == med][0]
-    return chosen
+    questionChoices = [k for k, v in questions.iteritems() if v == med]
+    return random.choice(questionChoices)
 
     # chosen = max(questions, key=questions.get) #TODO: separate out maxed/standard q version
     # ret = questions.popitem()
@@ -167,7 +167,7 @@ def playGame(concepts, features):
         bestCandidates = topObjects(objects)
         # print str(bestCandidates)
         question = getQuestion(bestCandidates, asked)
-        print question + "?" ##needs converting with regex
+        print convertToQuestion(question)
 
         #filter affected
         # print all_features.keys()

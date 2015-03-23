@@ -60,6 +60,31 @@ def filterDictBy(dict, field, value):
         if dict[k][field] != value:
             del dict[k]
 
+def convertToQuestion(feature):
+
+    if feature.startswith('it_'):
+        question = feature.replace("it_", "This_object_", 1)
+    elif feature.startswith('has_'):
+        question = feature.replace("has_", "Does_it_have_", 1)
+    elif feature.startswith('is_'):
+        question = feature.replace("is_", "Is_it_", 1)
+    elif feature.startswith('was_'):
+        question = feature.replace("was_", "Was_it_", 1)
+    elif feature.startswith('it\'s_'):
+        question = feature.replace("it's_", "Is_it's_", 1)
+    elif feature.startswith('for_example_'):
+        question = feature.replace("for_example_", "Is_\"")
+        question += "\"_an_example_or_version_of_this_object"
+    else:
+        pass
+
+    question = question.replace("_", " ")
+    question += "?"
+
+    return question
+
+print convertToQuestion("is_used_by_Hell's_Angels")
+
 # questions = dict(clothing=1, construction=12, device=6, food=10, furniture=1, implement=5)
 #
 #
