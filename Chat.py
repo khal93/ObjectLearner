@@ -1,3 +1,4 @@
+from __future__ import division
 __author__ = 'Khaleeq'
 
 import re
@@ -18,7 +19,6 @@ all_concepts = D.all_concepts
 # global features
 all_features = D.all_features
 
-
 artefacts = dict(clothing={}, construction={}, device={}, food={}, furniture={}, implement={})
 naturals = dict(animal={}, mineral={}, plant={})
 tax = dict(artefact=artefacts, natural=naturals)
@@ -27,9 +27,10 @@ tax = dict(artefact=artefacts, natural=naturals)
 def middle(nums):
     nums.sort()
     length = len(nums)
-    half = length/2
+    half = length//2
     # if length % 2:                  #if even, return the half
-    return nums [half]
+    print half
+    return nums[half]
     # else:                            #if odd
     #     return (nums[half] + nums[half-1] )/2
 
@@ -110,29 +111,42 @@ def getQuestion(objects, asked):
 def setupObjects():
     objDict = OrderedDict()
     for obj in all_concepts:
-        objDict.update({obj: 0})  # Put all objects  into dic with value 0
+        objDict.update({obj: 0.0})  # Put all objects  into dic with value 0
     # shuffle(objects)
     # shuffle(objects)
     # sorted(objects, key=objects.get, reverse=True)
     return objDict
 
-def topObjects(d):
+def topObjects(d, nots):
 
     avg = np.mean(d.values())
+
     for o in d.keys():
-        if int(d.get(o)) < avg:
+        if (int(d.get(o)) < avg) or (o in nots):
             del d[o]
+        # if (len(d) > 0) and (o in nots):
+        #      del d[o]
     return d
 
 def modifyScore(d, key, value):
     if key in d.keys():
-        if isinstance( value, ( int, long ) ):
+        if isinstance( value, ( int, long, float ) ):
             d[key] = d.get(key) + value
-        print "\t :" + key + " +" + str(value)
+        print "\t :" + key + " +" + str(value) + "\t : "+ str(d.get(key))
 
 def removeObject(d, key):
     del d[key]
     print "\t :" + key + " X"
+
+def getEffected(objects, question):
+    effected = all_features[question]['concepts']
+    intersection = effected.viewkeys() & objects.viewkeys()
+    for o in effected.keys():
+        if not (o in intersection):
+            del effected[o]
+
+    print effected.keys()
+    return effected
 
 
 
@@ -151,7 +165,7 @@ def playGame(concepts, features):
     numQuestions = 0
     questionHistory = []
     asked = [] #sorta hacky, could access question history directly but this should avoid a loop
-
+    currentlyNot = []
     # for s in featStack:
     #     print s.name
 
@@ -164,86 +178,104 @@ def playGame(concepts, features):
 
     while (not readyToGuess): #and (len(featStack) > 0):
         numQuestions+=1
-        bestCandidates = topObjects(objects)
+        bestCandidates = topObjects(objects, currentlyNot)
         # print str(bestCandidates)
         question = getQuestion(bestCandidates, asked)
         print convertToQuestion(question)
 
-        #filter affected
+        #filter effected
         # print all_features.keys()
-        affected = all_features[question]['concepts']
-        intersection = affected.viewkeys() & objects.viewkeys()
-        for o in affected.keys():
-            if not (o in intersection):
-                del affected[o]
 
-        print affected.keys()
 
 
         response = raw_input().lower()
 
         ##answer processing
 
-        def processAnswer_priorty():
+        def processAnswer_priorty(question, answer):
         ### Changes prioty depending on answers
-        ###TODO: Currently removes at -2, as prioritised version still to be done
-            if response == "yes":
-                for o in objects.keys():
-                    # if objects.get(o) <= -2:
-                    #     removeObject(objects, o)
-                    if o in affected:
-                      modifyScore(objects, o, +1)
-                    else:
-                      modifyScore(objects, o, int(0-1))
+            certainty = answerCertainty(answer)
+            currentlyNot = []
 
 
-            elif response == "no":
-                for o in objects.keys():
-                    # if objects.get(o) <= -2:
-                    #     removeObject(objects, o)
-                    if o in affected:
-                      modifyScore(objects, o, int(0-1))
-                    else:
-                        modifyScore(objects, o, 1)
+            effected = getEffected(objects, question)
+
+            #TODO NORMALISE SCORE WITH RELEVANCE-RATING
+            for o in objects.keys():
+            # if objects.get(o) <= -2:
+            #     removeObject(objects, o)
+                featureConfidence = 0
+
+                if o in effected:
+                  featureConfidence = all_features[question]["concepts"][o] / 30
+                  # modifyScore(objects, o, + certainty)
+                  modifyScore(objects, o,  (100 * np.mean([certainty, featureConfidence])))
+                  if certainty < 0:
+                      currentlyNot.append(o)
+
+                else:
+                  # modifyScore(objects, o, - certainty)
+                  modifyScore(objects, o, ( 0 - (100* np.mean([certainty, featureConfidence]) )))
+                  if certainty > 0:
+                    currentlyNot.append(o)
+            #
+            # if certainty > 0:
+            #     for o in objects.keys():
+            #         # if objects.get(o) <= -2:
+            #         #     removeObject(objects, o)
+            #         if o in effected:
+            #           modifyScore(objects, o, +1)
+            #         else:
+            #           modifyScore(objects, o, int(0-1))
+            #
+            #
+            # elif response == "no":
+            #     for o in objects.keys():
+            #         # if objects.get(o) <= -2:
+            #         #     removeObject(objects, o)
+            #         if o in effected:
+            #           modifyScore(objects, o, int(0-1))
+            #         else:
+            #             modifyScore(objects, o, 1)
 
 
 
-        def processAnswer_mirror():
-        ###Yes: +1 or remove  /  No: remove or +1
-            if response == "yes":
-                for o in objects.keys():
-                    if o in affected:
-                      modifyScore(objects, o, 1)
-                    else:
-                        removeObject(objects, o)
-
-            elif response == "no":
-                for o in objects.keys():
-                    if o in affected:
-                        removeObject(objects, o)
-                    else:
-                        modifyScore(objects, o, 1)
-
-        def processAnswer_y1_nX():
-        ### Yes: +1 / No: Remove
-            if response == "yes":
-                for o in affected:
-                    if o in objects.keys():
-                      modifyScore(objects, o, 1)
-                    # else:
-                    #     removeObject(objects, o)
-
-            elif response == "no":
-                for o in affected:
-                    if o in objects.keys():
-                        removeObject(objects, o)
-                    # else:
-                    #     modifyScore(objects, o, 1)
+        # def processAnswer_mirror():
+        # ###Yes: +1 or remove  /  No: remove or +1
+        #     if response == "yes":
+        #         for o in objects.keys():
+        #             if o in effected:
+        #               modifyScore(objects, o, 1)
+        #             else:
+        #                 removeObject(objects, o)
+        #
+        #     elif response == "no":
+        #         for o in objects.keys():
+        #             if o in effected:
+        #                 removeObject(objects, o)
+        #             else:
+        #                 modifyScore(objects, o, 1)
+        #
+        # def processAnswer_y1_nX():
+        # ### Yes: +1 / No: Remove
+        #     if response == "yes":
+        #         for o in effected:
+        #             if o in objects.keys():
+        #               modifyScore(objects, o, 1)
+        #             # else:
+        #             #     removeObject(objects, o)
+        #
+        #     elif response == "no":
+        #         for o in effected:
+        #             if o in objects.keys():
+        #                 removeObject(objects, o)
+        #             # else:
+        #             #     modifyScore(objects, o, 1)
 
 
         # processAnswer_y1_nX()
         # processAnswer_mirror()
-        processAnswer_priorty()
+        processAnswer_priorty(question, response)
 
 
         questionHistory.append({ question : response } )
@@ -263,7 +295,7 @@ def playGame(concepts, features):
             readyToGuess == True
         else:
             secondGuess = max(remObjs, key=remObjs.get)
-            if objects[topGuess] - objects[secondGuess] >= 5:
+            if objects[topGuess] - objects[secondGuess] >= 50:
                 readyToGuess = True
 
         print str(len(bestCandidates)) + " candidates" + "\t" + "current guess: " + topGuess + " (" + str(objects[topGuess]) + ")"

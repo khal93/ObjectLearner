@@ -83,7 +83,51 @@ def convertToQuestion(feature):
 
     return question
 
-print convertToQuestion("is_used_by_Hell's_Angels")
+
+def answerCertaintyOld(answer):
+    if answer == "yes":
+        return 1
+    elif answer == "no":
+        return -1
+    else:
+        return 0
+
+def answerCertainty(answer):
+    #TODO hacky, order of ifs can mess it up as atm it checks for al substrings not precisely just words.
+    ###  TODO Crude implementation for now. In future can find a better way with NLTK?
+
+    score = 0.0
+
+    negation = ["not"]
+    no=["no", "false"]
+    unlikely=["unlikely", "doubtful", "negative"]
+    unsure=["maybe", "don't know", "unsure", "skip", "can't tell", "not relevant", "irrelevant"]
+    likely=["likely", "positive", "confident"]
+    yes=["yes", "true"]
+
+
+    if any(word in answer for word in no):
+        score = -1
+
+    if any(word in answer for word in unlikely):
+        score = -0.5
+
+    if any(word in answer for word in unsure):
+        score = 1
+
+    if any(word in answer for word in likely):
+        score = 0.5
+
+    if any(word in answer for word in yes):
+        score =1
+
+###### NEGATION!
+    if any(word in answer for word in negation):
+        score = score * -1
+    # else:
+    #     score = 0
+
+    return score
 
 # questions = dict(clothing=1, construction=12, device=6, food=10, furniture=1, implement=5)
 #

@@ -68,6 +68,7 @@ class DatabaseManager():
             new_conc = {concept[0] : dict(wnid=concept[1], superclass=concept[2], subclass=concept[3], freq=concept[7],  features=conFeats) }
             self.all_concepts.update(new_conc)
 
+            # print self.all_features["is_a_reptile"]["concepts"]["python"]
 
             # print table?
             # print len(table)
@@ -105,4 +106,6 @@ class DatabaseManager():
 ### test
 print("Fetching from Database...")
 database = DatabaseManager()
-print("Fetching complete.");
+print("Fetch complete. One moment please.");
+
+
