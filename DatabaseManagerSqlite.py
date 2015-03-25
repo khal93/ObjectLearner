@@ -42,12 +42,16 @@ class DatabaseManager():
     ### Store all features on an array of Features
         for feature in features:
             # print feature[0]
-            cursor.execute("SELECT cf.conceptId, cf.agreementFreq"
+            cursor.execute("SELECT cf.conceptId, cf.agreementScore, cf.frequency"
             + " FROM features AS f, concept_features AS cf"
             + " WHERE f.featureId = \"" + feature[0] + "\""
             + " AND cf.featureId = f.featureId")
 
-            featCons = dict(map(list, cursor.fetchall()))
+            fc = cursor.fetchall()
+            featCons = dict()
+            for i, val in enumerate(fc):
+                featCons[val[0]] = {'agreementScore' : val[1], 'frequency' : val[2]}
+            # featCons = dict(map(list, cursor.fetchall()))
 
             new_feat = {feature[0] : dict(brainregion=feature[1], wbclass=feature[2], wbtype=feature[3], isDisting=feature[5], distinctiveness=feature[6], concepts=featCons)}
             self.all_features.update(new_feat)
@@ -58,11 +62,18 @@ class DatabaseManager():
 
     ### Get subfeatures for each concept, then store each conept as an array of Concepts
         for concept in concepts:
-            cursor.execute("SELECT cf.featureId, cf.agreementFreq"
+            cursor.execute("SELECT cf.featureId, cf.agreementScore, cf.frequency"
                         + " FROM concepts AS c, concept_features AS cf"
                         + " WHERE c.conceptId = \"" + concept[0] + "\""
                         + " AND cf.conceptId = c.conceptId")
-            conFeats = dict(map(list, cursor.fetchall()))
+            cf = cursor.fetchall()
+            conFeats = dict()
+            for i, val in enumerate(cf):
+                conFeats[val[0]] = {'agreementScore' : val[1], 'frequency' : val[2]}
+
+            # print str(conFeats)
+            # conFeats = dict(map(list, cursor.fetchall()))
+
 
 
             new_conc = {concept[0] : dict(wnid=concept[1], superclass=concept[2], subclass=concept[3], freq=concept[7],  features=conFeats) }

@@ -119,14 +119,15 @@ def setupObjects():
 
 def topObjects(d, nots):
 
-    avg = np.mean(d.values())
+    tops = d.copy()
+    avg = np.mean(tops.values())
 
-    for o in d.keys():
-        if (int(d.get(o)) < avg) or (o in nots):
-            del d[o]
+    for o in tops.keys():
+        if (int(tops.get(o)) < avg):# or (o in nots):
+            del tops[o]
         # if (len(d) > 0) and (o in nots):
         #      del d[o]
-    return d
+    return tops
 
 def modifyScore(d, key, value):
     if key in d.keys():
@@ -140,14 +141,35 @@ def removeObject(d, key):
 
 def getEffected(objects, question):
     effected = all_features[question]['concepts']
-    intersection = effected.viewkeys() & objects.viewkeys()
-    for o in effected.keys():
-        if not (o in intersection):
-            del effected[o]
+    # intersection = effected.viewkeys() & objects.viewkeys()
+    # for o in effected.keys():
+    #     if not (o in intersection):
+    #         del effected[o]
 
     print effected.keys()
     return effected
 
+
+def learning(objects, guess, history):
+    print str(history)
+
+
+    print "What is this object called?"
+    name = raw_input().lower()
+    if object in objects.keys():
+        ##TODO NLTK check for synonyms as well
+        print "Is it: " + str(objects[name])
+
+        ##print table of matches??
+
+        ##Ask about discrepancies??
+        ##Ask to compare current object with guessed object
+        ##Update current object (and guessed object?) in DB
+    else:
+        print "I think this is a new object"
+        ##Ask to compare current object with guessed object
+        ##Ask some more questions?
+        ##Add new object to DB
 
 
 def playGame(concepts, features):
@@ -197,27 +219,31 @@ def playGame(concepts, features):
             certainty = answerCertainty(answer)
             currentlyNot = []
 
+            qConcepts = all_features[question]["concepts"]
 
             effected = getEffected(objects, question)
 
             #TODO NORMALISE SCORE WITH RELEVANCE-RATING
+            num = 0
             for o in objects.keys():
+                num = num +1
             # if objects.get(o) <= -2:
             #     removeObject(objects, o)
                 featureConfidence = 0
 
                 if o in effected:
-                  featureConfidence = all_features[question]["concepts"][o] / 30
+                  agreement = qConcepts[o]["agreementScore"]
+                  freq = qConcepts[o]["frequency"]
+                  featureConfidence = agreement / freq
                   # modifyScore(objects, o, + certainty)
                   modifyScore(objects, o,  (100 * np.mean([certainty, featureConfidence])))
                   if certainty < 0:
                       currentlyNot.append(o)
-
                 else:
                   # modifyScore(objects, o, - certainty)
                   modifyScore(objects, o, ( 0 - (100* np.mean([certainty, featureConfidence]) )))
-                  if certainty > 0:
-                    currentlyNot.append(o)
+                  # if certainty > 0:
+                  #   currentlyNot.append(o)
             #
             # if certainty > 0:
             #     for o in objects.keys():
@@ -238,6 +264,7 @@ def playGame(concepts, features):
             #         else:
             #             modifyScore(objects, o, 1)
 
+            print str(num) + " out of " + str(len(objects)) + " changed"
 
 
         # def processAnswer_mirror():
@@ -284,18 +311,19 @@ def playGame(concepts, features):
         # print str(len(objects)) + " objects remain" + "\t" + "current guess: " + max(objects, key=objects.get)
         topGuess = max(objects, key=objects.get)
 
-        #TODO: - check for clear winner, something better than difference 5?
+        #TODO: - check for clear winner, something better than difference 100?
         remObjs = objects.copy()
         del remObjs[topGuess]
 
-        if len(bestCandidates) == 1:
+        # if len(topObjects(objects, [])) == 1:
+        if len (bestCandidates) == 1:
             readyToGuess = True
 
         if  len(remObjs) == 0:
             readyToGuess == True
         else:
             secondGuess = max(remObjs, key=remObjs.get)
-            if objects[topGuess] - objects[secondGuess] >= 50:
+            if objects[topGuess] - objects[secondGuess] >= 100:
                 readyToGuess = True
 
         print str(len(bestCandidates)) + " candidates" + "\t" + "current guess: " + topGuess + " (" + str(objects[topGuess]) + ")"
@@ -303,10 +331,15 @@ def playGame(concepts, features):
 
         # win condition
         if readyToGuess == True: # or len(questions) == 0:
-            guess = objects.popitem()
-            print "I predict that the object is: " + guess[0]
+            guess = max(objects, key=objects.get)
+            print "I predict that the object is: " + guess[0] + " \t " + str(guess)
             print "\n Questions asked: " + str(numQuestions)
             # guessed = True
+            print "Is this correct?"
+            isCorrect = raw_input().lower()
+
+            if isCorrect == "no":
+                lost = True
 
         elif len(objects) == 0: #TODO??
             lost = True
@@ -314,8 +347,10 @@ def playGame(concepts, features):
     # if guessed == True:
 
     if lost == True:
-        print "You win!"
+        # print "You win!"
          #implement learn new object
+        learning(objects, guess, questionHistory)
+
 
 
 
