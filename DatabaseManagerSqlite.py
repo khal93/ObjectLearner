@@ -2,7 +2,7 @@ __author__ = 'Khaleeq'
 
 # import pymysql
 import sqlite3
-import Questioner
+import Learner
 
 class DatabaseManager():
     def __init__(self):

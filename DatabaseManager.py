@@ -1,7 +1,7 @@
 __author__ = 'Khaleeq'
 
 import pymysql
-import Questioner
+import Learner
 
 class DatabaseManager():
     def __init__(self):
