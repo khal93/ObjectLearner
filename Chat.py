@@ -15,7 +15,6 @@ import numpy as np
 D = DatabaseManager()
 # global concepts
 all_concepts = D.all_concepts
-
 # global features
 all_features = D.all_features
 
@@ -52,33 +51,6 @@ def askPreQuestions(concepts, objects):
             if concepts[k]['superclass'] != sup:
                 del objects[k]
 
-
-    # sub = subQuestion(tax[sup].keys())
-    # if sub == "skip":
-    #     for k in concepts.keys():
-    #         if concepts[k]['superclass'] != sup:
-    #             del objects[k]
-    #
-    # else:
-    #     for k in concepts.keys():
-    #         if concepts[k]['subclass'] != sub:
-    #             del objects[k]
-
-            # CHANGE SO NO DUPES IN THIS LIST
-
-            # for f in features.keys():
-            # if not (f in cfeats):
-            #             del features[f]
-            #         # filteredFeatures.append(f)
-            # # features = filteredFeatures
-
-            # for key in features.keys():
-            #     # print "x"
-            #     qlen = len(features[key]['concepts'])
-            #     questions.update({key: qlen})
-
-            # Put all questions  into dic with number of concepts
-            # questions = OrderedDict(sorted(questions.items(), key=lambda t: t[1]))
 
 
 
@@ -151,8 +123,10 @@ def getEffected(objects, question):
 
 
 def learning(objects, guess, history):
-    print str(history)
-
+    # print str(history)
+    # objects = OrderedDict([('fawn', 405.0), ('pigeon', 315.0), ('mackerel', 170.0), ('housefly', 551.66666666666674), ('crocodile', 204.99999999999997), ('seaweed', 273.33333333333337), ('pheasant', 354.99999999999994), ('grape', 84.999999999999972), ('nectarine', 311.66666666666669), ('celery', 110.0), ('cougar', 166.66666666666663), ('penguin', 575.00000000000011), ('minnow', 165.0), ('pumpkin', 173.33333333333334), ('porcupine', 241.66666666666669), ('dandelion', 460.0), ('bear', 143.33333333333329), ('peacock', 545.0), ('asparagus', 205.0), ('emu', 423.33333333333326), ('bison', 91.666666666666657), ('nightingale', 518.33333333333326), ('pineapple', 525.0), ('crow', 311.66666666666669), ('grasshopper', 318.33333333333331), ('vine', 330.0), ('worm', 413.33333333333326), ('lion', 271.66666666666669), ('seal', -93.333333333333343), ('chicken', 488.33333333333326), ('honeydew', 253.33333333333334), ('pine', 333.33333333333337), ('mandarin', 220.0), ('cantaloupe', 236.66666666666669), ('cauliflower', 310.0), ('goldfish', 383.33333333333331), ('bat_(animal)', 230.0), ('tortoise', 91.666666666666686), ('cow', 441.66666666666669), ('pickle', 13.333333333333329), ('hamster', 501.66666666666674), ('eggplant', 178.33333333333331), ('raccoon', 675.0), ('groundhog', 345.0), ('apple', 356.66666666666669), ('coconut', 271.66666666666669), ('starling', 734.99999999999989), ('duck', 288.33333333333337), ('walnut', 291.66666666666669), ('lime', 256.66666666666663), ('alligator', 275.0), ('parsley', 93.333333333333314), ('frog', 416.66666666666663), ('turkey', 143.33333333333334), ('yam', 245.0), ('pearl', 445.0), ('crab', 278.33333333333331), ('blueberry', 233.33333333333331), ('calf', 265.0), ('squid', 166.66666666666663), ('squirrel', 310.0), ('mushroom', 386.66666666666669), ('tiger', 221.66666666666669), ('rabbit', 366.66666666666674), ('bull', 240.0), ('olive', 83.333333333333314), ('coyote', 186.66666666666663), ('swan', 585.0), ('rat', 590.00000000000011), ('cat', 630.0), ('turnip', 380.0), ('robin', 790.0), ('seagull', 555.0), ('pelican', 353.33333333333331), ('prune', 308.33333333333331), ('pony', 458.33333333333326), ('moth', 253.33333333333331), ('dolphin', 96.666666666666657), ('rooster', 343.33333333333331), ('carrot', 341.66666666666663), ('beaver', 173.33333333333326), ('shrimp', 206.66666666666669), ('lamb', 180.0), ('rhubarb', 168.33333333333331), ('mouse', 469.99999999999989), ('stone', 251.66666666666669), ('python', 423.33333333333331), ('catfish', 176.66666666666669), ('elephant', 255.0), ('goat', 398.33333333333331), ('cod', 151.66666666666669), ('moose', 160.0), ('snail', 320.0), ('cranberry', 400.0), ('leopard', 135.0), ('garlic', 353.33333333333331), ('birch', 530.0), ('cabbage', 296.66666666666669), ('hawk', 436.66666666666674), ('dove', 653.33333333333337), ('broccoli', 116.66666666666666), ('sparrow', 756.66666666666652), ('tomato', 95.000000000000028), ('peach', 153.33333333333331), ('platypus', 68.333333333333371), ('giraffe', 356.66666666666663), ('mole_(animal)', 246.66666666666663), ('camel', 351.66666666666657), ('emerald', 343.33333333333337), ('canary', 918.33333333333337), ('iguana', 713.33333333333326), ('elk', -108.33333333333339), ('willow', 235.00000000000006), ('cherry', 400.0), ('avocado', -15.0), ('chickadee', 750.0), ('grapefruit', 273.33333333333331), ('radish', 343.33333333333337), ('orange', 320.0), ('raven', 536.66666666666674), ('budgie', 551.66666666666652), ('vulture', 425.00000000000006), ('salamander', 149.99999999999997), ('gopher', 356.66666666666663), ('caterpillar', 141.66666666666666), ('clam', 176.66666666666671), ('cedar', 308.33333333333331), ('flea', 425.0), ('falcon', 650.0), ('flamingo', 400.0), ('rock', 253.33333333333331), ('butterfly', 330.0), ('hare', 498.33333333333326), ('spider', 600.00000000000011), ('goose', 461.66666666666669), ('lobster', 191.66666666666669), ('zebra', 393.33333333333331), ('eel', 81.666666666666657), ('plum', 225.0), ('fox', 298.33333333333326), ('rattlesnake', 438.33333333333326), ('trout', 345.00000000000006), ('eagle', 541.66666666666663), ('pepper', 400.0), ('salmon', 406.66666666666663), ('corn', 376.66666666666669), ('cockroach', 156.66666666666663), ('raspberry', 145.0), ('walrus', -106.66666666666667), ('raisin', 440.0), ('ostrich', 580.0), ('beans', 311.66666666666669), ('ox', 100.0), ('cucumber', 131.66666666666663), ('octopus', 55.000000000000043), ('owl', 538.33333333333337), ('zucchini', 98.333333333333343), ('wasp', 566.66666666666674), ('chimp', 235.0), ('buzzard', 313.33333333333331), ('lettuce', 238.33333333333331), ('guppy', 241.66666666666669), ('tuna', -115.0), ('sheep', 398.33333333333331), ('horse', 398.33333333333331), ('spinach', 201.66666666666663), ('stork', 578.33333333333326), ('woodpecker', 521.66666666666663), ('banana', 296.66666666666669), ('shell', 318.33333333333331), ('turtle', 348.33333333333331), ('otter', 240.00000000000006), ('beets', 256.66666666666663), ('bluejay', 730.0), ('strawberry', 165.0), ('blackbird', 756.66666666666674), ('hornet', 338.33333333333337), ('whale', 29.999999999999972), ('donkey', 250.0), ('mink', 323.33333333333337), ('perch', 243.33333333333326), ('chipmunk', 460.0), ('beetle', 374.99999999999989), ('deer', 329.99999999999994), ('pig', 298.33333333333326), ('ant', 330.0), ('panther', 420.0), ('oriole', 508.33333333333337), ('hyena', 138.33333333333331), ('lemon', 470.0), ('partridge', 341.66666666666663), ('oak', 236.66666666666663), ('parakeet', 631.66666666666663), ('finch', 741.66666666666674), ('cheetah', 153.33333333333331), ('toad', 286.66666666666669), ('tangerine', 311.66666666666669), ('onions', 478.33333333333331), ('pear', 405.0), ('peas', 211.66666666666666), ('sardine', 153.33333333333331), ('potato', 265.0), ('caribou', 118.33333333333334), ('dog', 530.0), ('gorilla', 168.33333333333334), ('skunk', 608.33333333333326), ('buffalo', -53.333333333333329)])
+    guess = "canary"
+    history = [{'has_fur': 'no'}, {'is_furry': 'no'}, {'has_seeds': 'no'}, {'it_tastes_good': 'no'}, {'is_a_vegetable': 'no'}, {'is_brown': 'sometimes'}, {'has_4_legs': 'no'}, {'is_white': 'yes'}, {'it_lives_in_water': 'no'}, {'it_sings': 'yes'}, {'has_legs': 'yes'}, {'is_a_mammal': 'no'}, {'has_a_tail': 'yes'}, {'has_eyes': 'yes'}, {'is_green': 'no'}, {'is_hunted_by_people': 'no'}, {'is_edible': 'no'}, {'is_an_insect': 'no'}, {'it_lives_on_farms': 'no'}, {'is_grey': 'no'}, {'it_swims': 'no'}, {'it_lays_eggs': 'yes'}, {'it_builds_nests': 'yes'}, {'is_a_pet': 'yes'}, {'is_hard': 'no'}, {'is_large': 'no'}, {'is_yellow': 'yes'}]
 
     print "What is this object called?"
     name = raw_input().lower()
@@ -334,6 +308,11 @@ def playGame(concepts, features):
             guess = max(objects, key=objects.get)
             print "I predict that the object is: " + guess[0] + " \t " + str(guess)
             print "\n Questions asked: " + str(numQuestions)
+            print str(questionHistory)
+
+            print "\n Objs: "
+            print str(objects)
+
             # guessed = True
             print "Is this correct?"
             isCorrect = raw_input().lower()
@@ -347,9 +326,9 @@ def playGame(concepts, features):
     # if guessed == True:
 
     if lost == True:
-        # print "You win!"
+        print "You win!"
          #implement learn new object
-        learning(objects, guess, questionHistory)
+        # learning(objects, guess, questionHistory)
 
 
 
@@ -366,6 +345,7 @@ def main():
     # print type(all_concepts)
     # print str(all_concepts)
 
+    print (all_concepts)
 
     playGame(all_concepts, all_features)
 
